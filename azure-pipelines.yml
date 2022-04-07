@@ -1,0 +1,57 @@
+trigger:
+  - develop
+  - master
+ 
+resources:
+  - repo: self
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: branchName
+    value: $[replace(variables['Build.SourceBranchName'], 'refs/heads/', '')]
+
+stages:
+    - stage: demo
+      displayName: demo
+      jobs:
+      - job: CI_Stage
+        steps:
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              echo $(Build.SourceBranch)
+              echo 'this is CI Stage'
+      - job: CD_Stage_DEV
+        dependsOn: CI_Stage
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+        steps:
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Write your commands here
+              echo $(Build.SourceBranch)
+              echo 'this is CD Stage to DEV'     
+      - job: tag
+        dependsOn: CI_Stage
+        displayName: tag
+        condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+        steps:
+        - task: git-tag-on-release-task@9
+          displayName: "Add Tag $(branchName)-$(Build.BuildNumber) to git"
+          inputs:
+            staticTagName: "$(branchName)-$(Build.BuildNumber)"
+      - job: CD_Stage_PROD
+        dependsOn: CI_Stage
+        condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/master-')
+        steps:
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Write your commands here
+              echo $(Build.SourceBranch)
+              echo 'this is CD Stage to PROD'
