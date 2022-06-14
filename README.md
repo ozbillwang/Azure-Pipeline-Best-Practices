@@ -1,6 +1,7 @@
 # Azure-Pipeline-Stages
 manage Azure Pipeline with best practices
 
+reference pipeline: [azure-pipelines.yml](https://github.com/ozbillwang/Azure-Pipeline-Best-Practices/blob/master/azure-pipelines.yml}
 ### CICD pipeline
 
 I split the pipeline into 4 stages.
